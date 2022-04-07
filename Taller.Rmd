@@ -1,0 +1,393 @@
+---
+title: "Ejercicios Taller 1 - Dplyr"
+author: "Yamid Ortiz"
+date: '2022-03-27'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+
+```
+
+```{r 1.1}
+
+## Ejercicio RStudio 1.1 semilla 2006
+
+set.seed(2006)
+
+rstudio11 <-  rnorm(n = 120, mean = 5, sd = 0.85) |> signif(3)
+
+rstudio11
+
+```
+
+```{r 1.2}
+
+## Ejercicio RStudio 1.2 semilla 2006
+
+set.seed(2006)
+
+rstudio12 <- rbinom(n = 120, prob = 0.8, size = 20)
+
+rstudio12 
+
+```
+
+```{r 1.3}
+
+## Ejercicio RStudio 1.3 semilla 2006
+
+set.seed(2006)
+
+rstudio13 <- rpois(n = 120, lambda = 10.5)
+
+rstudio13
+
+
+```
+
+```{r 1.4}
+
+## Ejercicio RStudio 1.4 semilla 2006
+
+set.seed(2006)
+
+rstudio14 <- sample.int(n = 120, replace = 300)
+
+rstudio14
+
+```
+
+```{r 1.5}
+## Ejercicio RStudio 1.5 semilla 2006
+
+set.seed(2006)
+
+library(purrr)
+
+rstudio15 <- rbernoulli(n =120, p = 0.75) 
+
+rstudio15_C <- ifelse(rstudio15 == "TRUE", "Presente", "Ausente")
+
+rstudio15_C
+
+
+```
+
+```{r 1.6}
+
+## Ejercicio RStudio 1.6
+
+rstudio16 <- gl(n = 3, k =1, length = 40, labels = c("S", "PA", "MA"))
+
+rstudio16
+
+
+
+```
+
+```{r 1.7}
+
+## Ejercicio RStudio 1.7
+
+set.seed(2006)
+
+rstudio17 <- runif(n = 120, min = 0, max = 1.2)
+
+rstudio17c <- ifelse(rstudio17 < 0.5, "FO", "FI")
+
+rstudio17c
+
+
+```
+```{r 1.8}
+
+## Ejercicio RStudio 1.8
+
+dataframe <- data.frame("Biomasa" = rstudio11, 
+                        "Flores.r" = rstudio12,
+                        "Flores.d" = rstudio13,
+                        "Hojas.d" = rstudio14,
+                        "Plaga" = rstudio15_C,
+                        "Estatus" = rstudio16,
+                        "Fertilizacion" = rstudio17c
+                        )
+dataframe
+
+dim.data.frame(dataframe)
+
+str(dataframe)
+
+str(dataframe)
+
+class(dataframe)
+
+names(dataframe)
+
+is.na(dataframe)
+
+```
+```{r 1.9}
+
+## Ejercicio RStudio 1.9
+
+library(dplyr)
+
+tib.c <- dataframe
+
+tic.i <- dataframe %>%
+  
+  slice_sample(prop = 0.75)
+  tic.i[9,1] <- NA
+  tic.i[5,3] <- NA
+
+tic.i
+
+
+
+
+```
+```{r 1.10 - 1}
+##1
+select(tib.c, Hojas.d)
+##2
+select(tib.c, Flores.d:Estatus)
+##3
+select(tib.c, !c(Flores.d:Estatus))
+##4
+select(tib.c, (!ends_with(".d")))
+##5
+select(tib.c, (starts_with("Fl")))
+##6
+select(tib.c, (starts_with("Fl")&ends_with(".d")))
+##7
+var.estatus <- group_by(select(tib.c, Biomasa, Estatus), Estatus)
+  
+var.estatus
+  
+##8
+arrange(var.estatus, desc(Biomasa), .by_group = TRUE)
+var.estatus
+##9
+
+filter(select(tib.c, (starts_with("Fl")), Estatus), Estatus == "MA")
+
+##10
+
+slice_min(tib.c, Biomasa < 5)
+
+##11
+
+filter(tib.c, Estatus == "PA" & Fertilizacion == "FO")
+
+##12
+
+filter(tib.c, Estatus == "PA" & Fertilizacion == "FI")
+
+##13
+
+mediana_floresd <- summarise(tib.c, median(Flores.d))
+
+mediana_floresd
+
+flores.d_may_mediana <- select(tib.c, c(Flores.d, Plaga)) %>%
+subset(Flores.d > c(mediana_floresd))
+
+flores.d_may_mediana
+
+flores.d_may_mediana_flt <- filter(flores.d_may_mediana, Plaga == "Ausente")
+
+flores.d_may_mediana_flt 
+
+
+##14
+
+mediana_biomasa <- summarise(.data = tic.i, median(Biomasa, na.rm = T))
+
+mediana_biomasa
+
+biomasa_may_mediana <- select(.data = tic.i, c(Biomasa, Plaga)) %>%
+  subset(Biomasa > c(mediana_biomasa))  
+
+biomasa_may_mediana
+
+biomasa_may_mediana_flt <- filter(biomasa_may_mediana, Plaga == "Ausente")
+
+biomasa_may_mediana_flt
+
+
+```
+
+```{r 1.10-15}
+##15
+
+v1 <- tib.c %>% select(c(Flores.d, Hojas.d)) 
+
+v2 <- tib.c %>% summarise(mean(x = Flores.d)
+                       , mean(x = Hojas.d))
+v1
+
+# v1 = c(); v2 = c() %>% filter(.data [[v1[[1]] > v2[[1]],.data [[v1[[2]] > v2[[2]])
+
+```
+```{r 1.10 16 y 17}
+##16 y 17
+
+z.score.f <- function(x) mean(x)/sd(x)
+
+#Formula x normalizada
+
+#$$ x_{Normalizada}=\frac{x-x_{min}}{x_{max}-x_{min}}\ $$
+
+min.max <- function(x) (x - min(x))/(max(x)-min(x))
+
+tib.e <- tib.c %>% mutate(across(Biomasa, z.score.f, .names = "z.score_{.col}")) %>% mutate(across(Flores.r:Hojas.d, min.max, .names = "min.max_{.col}")) %>% mutate(Flores.r.d = Flores.r/Flores.d) 
+
+tib.e
+
+```
+
+```{r 1.10 18}
+##18
+
+rangomin <- tib.e %>% select(Flores.r.d, Plaga) %>% group_by(Plaga) %>% summarise(min(Flores.r.d))
+
+rangomin
+
+```
+
+```{r 1.10 19}
+##19
+
+var.renombradas <- tib.e %>% rename(Flores.rama = Flores.r, Flores.desprendidas = Flores.d, Flores.rama.n = min.max_Flores.r, Flores.desprendidas.n = min.max_Flores.d, Rel.Flores.r.d = Flores.r.d)
+
+var.renombradas
+
+```
+```{r 1.10 20}
+
+##20
+
+names (var.renombradas) <- toupper(names(var.renombradas))
+
+var.renombradas
+
+
+```
+```{r 1.10 21}
+
+##21
+
+tic.i %>% summarise(media = mean (Biomasa, na.rm = TRUE), n())
+
+
+```
+
+```{r 1.10 22}
+
+#22
+
+tic.i %>% group_by(Fertilizacion) %>%  
+  summarise(media = mean (Biomasa, na.rm = TRUE), n())
+
+```
+```{r 1.10 23}
+#23
+
+q = c(0.10, 0.20, 0.30, 0.40, 0.50)
+
+tib.c %>% 
+group_by(Fertilizacion) %>% 
+  summarise(quantile(Biomasa, c(q)))
+
+```
+
+```{r 1.10 24}
+tic.i %>% 
+group_by(Fertilizacion,Plaga) %>% 
+  summarise(media = mean(Biomasa),
+            mediana = median(Biomasa),
+            maximo = max(Biomasa),
+            minimo = min(Biomasa),
+            desviacion_tipica = sd(Biomasa),
+            media_trunc = mean(Biomasa, trim = 0.1),
+            varianza = var(Biomasa), na.rm = TRUE)
+
+```
+
+```{r 1.10 25}
+
+tic.i %>% 
+  
+group_by(Fertilizacion,Plaga) %>% 
+ filter(Estatus == "S") %>% 
+  summarise(media = mean(Biomasa),
+            mediana = median(Biomasa),
+            maximo = max(Biomasa),
+            minimo = min(Biomasa),
+            desviacion_tipica = sd(Biomasa),
+            media_trunc = mean(Biomasa, trim = 0.1),
+            varianza = var(Biomasa), na.rm = TRUE)
+
+```
+```{r 1.10 26}
+library(DataCombine)
+tic.i_NA <- DropNA(tic.i)
+
+tic.i_NA %>% 
+  
+group_by(Fertilizacion,Plaga) %>% 
+ filter(Estatus == "S") %>% 
+  summarise(media = mean(Biomasa),
+            mediana = median(Biomasa),
+            maximo = max(Biomasa),
+            minimo = min(Biomasa),
+            desviacion_tipica = sd(Biomasa),
+            media_trunc = mean(Biomasa, trim = 0.1),
+            varianza = var(Biomasa))
+#aquí si calcula los primeros estadisticos
+
+```
+```{r 1.10 27}
+
+tib.c_fil_PA_MA <- filter(tib.c, Estatus == c("MA","PA"))
+tib.c_fil_PA_MA
+
+```
+```{r 1.10 28}
+library (stats)
+
+tic.i.cc <- complete.cases(tic.i)
+
+tic.i.cc
+
+
+```
+```{r 1.10 29}
+
+tib.c_no.flores <- select(tib.c, -(Flores.r: Flores.d))
+
+tib.c_no.flores
+
+```
+
+```{r 1.10 30}
+
+tib.c.seleccion <- tib.c %>% select(contains("d")) %>% 
+  select(everything())
+
+tib.c.seleccion
+
+tib.c.orden.flores <- tib.c %>% select(everything()) %>% select(Flores.r, Flores.d, Biomasa, Hojas.d, Plaga, Estatus, Fertilizacion)
+
+tib.c.orden.flores
+
+```
+
+
+
+
+
